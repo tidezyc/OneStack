@@ -500,7 +500,12 @@ nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
 # nova-manage flavor create --name=m1.minitest --memory=384 --cpu=1 --root_gb=1 --flavor=6 --ephemeral_gb=1
 
 ## 上面的下载镜像移到这一步，可以去掉以下的步骤
-wget http://cloud-images.ubuntu.com/precise/current/precise-server-cloudimg-amd64-disk1.img
+
+if [ ! -f "precise-server-cloudimg-amd64-disk1.img" ]; then
+  wget http://cloud-images.ubuntu.com/precise/current/precise-server-cloudimg-amd64-disk1.img
+fi
+
+
 glance add name="Ubuntu12.04-amd64" is_public=true container_format=ovf disk_format=qcow2 < precise-server-cloudimg-amd64-disk1.img
 nova boot --flavor 1 --image "Ubuntu12.04-amd64" --key_name key1 cloud01
 # nova show cloud01

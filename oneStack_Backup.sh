@@ -29,7 +29,7 @@ if [ `whoami` != "root" ]; then
 fi
 
 ## 4：设置参数和环境配置，直到两行#号结束
-## 这个配置以后就不需要更改了，比如看到10.0.2.15等ip，不用更改，脚本会自动替换这些初始值。
+## 这个配置以后就不需要更改了，比如看到192.168.139.50等ip，不用更改，脚本会自动替换这些初始值。
 ## 可以变动的是，第500行的image的下载；或者去掉第七步开始的部分（上传镜像，创建实例）
 ##########################################################################
 ##########################################################################
@@ -45,15 +45,15 @@ GLANCE_DB_PASSWD=${GLANCE_DB_PASSWD:-"cloud1234"}
 ## 注意：单网卡的去掉interfaces的eth1，并把nova.conf里面eth1改完eth0即可！
 ## 自行检查下面network/interfaces的两个网卡设置
 ## 本机器外网ip （包括局域网的内网ip，相对于OpenStack内网而言的）
-OUT_IP="10.0.2.15"
-OUT_IP_PRE="10.0.2"
+OUT_IP="192.168.139.50"
+OUT_IP_PRE="192.168.139"
 ## nova-network内网ip
 IN_IP="10.0.0.1"
 IN_IP_PRE="10.0.0"
 ## flat的起始ip
 FLAT_IP="10.0.0.40"
 ## 浮动ip的起始值
-FLOAT_IP="10.0.2.225"
+FLOAT_IP="192.168.139.225"
 
 ## 选择虚拟技术，裸机使用kvm，虚拟机里面使用qemu
 VIRT_TYPE="qemu"
@@ -113,7 +113,7 @@ APT
 
 # network configure
 NETWORK_CONF=${NETWORK_CONF:-"/etc/network/interfaces"}
-if ! grep -q eth0 $NETWORK_CONF; then
+if ! grep -q eth1 $NETWORK_CONF; then
 	cat <<INTERFACES >$NETWORK_CONF
 auto lo
 iface lo inet loopback
@@ -122,13 +122,20 @@ iface lo inet loopback
 auto eth0
 iface eth0 inet static
 pre-up ifconfig eth0 hw ether b8:ac:6f:9a:ee:e4
-        address 10.0.2.15
+        address 192.168.139.50
         netmask 255.255.255.0
-        network 10.0.2.0
-        broadcast 10.0.2.255
-        gateway 10.0.2.1
-        dns-nameservers 202.101.172.35
+        network 192.168.139.0
+        broadcast 192.168.139.255
+        gateway 192.168.139.253
+        dns-nameservers 210.72.128.8
 
+auto eth1
+iface eth1 inet static
+pre-up ifconfig eth1 hw ether b8:ac:6f:9a:ee:e4
+        address 10.0.0.1
+        netmask 255.255.255.0
+        network 10.0.0.0
+        broadcast 10.0.0.255
 INTERFACES
         /etc/init.d/networking restart
 fi
@@ -307,7 +314,7 @@ sed -i -e "
 ## flavor = keystone
 GLANCE_API_CONF=${GLANCE_API_CONF:-"/etc/glance/glance-api.conf"}
 GLANCE_REGISTRY_CONF=${GLANCE_REGISTRY_CONF:-"/etc/glance/glance-registry.conf"}
-PUBLIC_IP=${PUBLIC_IP:-"10.0.2.15"}
+PUBLIC_IP=${PUBLIC_IP:-"192.168.139.50"}
 sed -i '/sql_connection = .*/{s|sqlite:///.*|mysql://'"$GLANCE_DB_USERNAME"':'"$GLANCE_DB_PASSWD"'@'"$PUBLIC_IP"'/glance|g}' $GLANCE_API_CONF
 cat <<EOF >>$GLANCE_API_CONF
 [paste_deploy]
@@ -340,7 +347,7 @@ service glance-api restart && service glance-registry restart
 ## http://cloud-images.ubuntu.com/precise/current/
 ## 这应该是ubuntu提供的最新的稳定的镜像。
 #wget http://cloud-images.ubuntu.com/precise/current/precise-server-cloudimg-amd64-disk1.img
-##  expect -c "spawn /usr/bin/scp  yuan@10.0.2.84:/home/yuan/precise-server-cloudimg-amd64-disk1.img .; expect {
+##  expect -c "spawn /usr/bin/scp  yuan@192.168.139.84:/home/yuan/precise-server-cloudimg-amd64-disk1.img .; expect {
 ##     \"password:\"; {
 ##    send \"yyhu\r\n\";
 ##    }; \"Are you sure you want to continue connecting (yes/no)?\" {
@@ -374,18 +381,18 @@ cat <<NOVAconf > /etc/nova/nova.conf
 --use_deprecated_auth=false
 --auth_strategy=keystone
 --scheduler_driver=nova.scheduler.simple.SimpleScheduler
---s3_host=10.0.2.15
---ec2_host=10.0.2.15
---rabbit_host=10.0.2.15
---cc_host=10.0.2.15
---nova_url=http://10.0.2.15:8774/v1.1/
---routing_source_ip=10.0.2.15
---glance_api_servers=10.0.2.15:9292
+--s3_host=192.168.139.50
+--ec2_host=192.168.139.50
+--rabbit_host=192.168.139.50
+--cc_host=192.168.139.50
+--nova_url=http://192.168.139.50:8774/v1.1/
+--routing_source_ip=192.168.139.50
+--glance_api_servers=192.168.139.50:9292
 --image_service=nova.image.glance.GlanceImageService
 --iscsi_ip_prefix=10.0.0
---sql_connection=mysql://novadbadmin:cloud1234@10.0.2.15/nova
---ec2_url=http://10.0.2.15:8773/services/Cloud
---keystone_ec2_url=http://10.0.2.15:5000/v2.0/ec2tokens
+--sql_connection=mysql://novadbadmin:cloud1234@192.168.139.50/nova
+--ec2_url=http://192.168.139.50:8773/services/Cloud
+--keystone_ec2_url=http://192.168.139.50:5000/v2.0/ec2tokens
 --api_paste_config=/etc/nova/api-paste.ini
 --libvirt_type=kvm
 --libvirt_use_virtio_for_bridges=true
@@ -394,17 +401,17 @@ cat <<NOVAconf > /etc/nova/nova.conf
  
 #novnc
 --novnc_enabled=true
---novncproxy_base_url= http://10.0.2.15:6080/vnc_auto.html
+--novncproxy_base_url= http://192.168.139.50:6080/vnc_auto.html
 --vncserver_proxyclient_address=127.0.0.1
 --vncserver_listen=127.0.0.1
 
 # network specific settings
 --network_manager=nova.network.manager.FlatDHCPManager
 --public_interface=eth0
---flat_interface=eth0
+--flat_interface=eth1
 --flat_network_bridge=br100
 --fixed_range=10.0.0.1/27
---floating_range=10.0.2.225/27 
+--floating_range=192.168.139.225/27 
 --network_size=32
 --flat_network_dhcp_start=10.0.0.40
 --flat_injected=False
@@ -420,7 +427,7 @@ NOVAconf
 ## fi
 
 sed -i -e "s/novadbadmin/$NOVA_DB_USERNAME/g;s/cloud1234/$NOVA_DB_PASSWD/g" /etc/nova/nova.conf
-sed -i -e "s/10.0.2.15/$OUT_IP/g;s/10.0.2.225/$FLOAT_IP/g;" /etc/nova/nova.conf
+sed -i -e "s/192.168.139.50/$OUT_IP/g;s/192.168.139.225/$FLOAT_IP/g;" /etc/nova/nova.conf
 sed -i -e "s/10.0.0.1/$IN_IP/g;s/10.0.0.40/$FLAT_IP/g;s/10.0.0/$IN_IP_PRE/g;" /etc/nova/nova.conf
 ## kvm or qemu?
 sed -i -e "s/kvm/$VIRT_TYPE/g" /etc/nova/nova.conf
@@ -451,7 +458,7 @@ apt-get install -y libapache2-mod-wsgi openstack-dashboard
 /etc/init.d/apache2 restart
 
 ## 这个时候，你就可以登录dashboard
-## http://10.0.2.15
+## http://192.168.139.50
 ## user:admin
 ## pass:ADMIN
 ## 之后通过前端web管理
@@ -466,10 +473,10 @@ apt-get install -y libapache2-mod-wsgi openstack-dashboard
 nova-manage db sync
 
 # 创建网络
-nova-manage network create private --fixed_range_v4=10.0.0.1/27 --num_networks=1 --bridge=br100 --bridge_interface=eth0 --network_size=32
+nova-manage network create private --fixed_range_v4=10.0.0.1/27 --num_networks=1 --bridge=br100 --bridge_interface=eth1 --network_size=32
 
 ## 设定floating IP
-nova-manage floating create --ip_range=10.0.2.225/27
+nova-manage floating create --ip_range=192.168.139.225/27
 
 ## 设置权限
 chown -R nova:nova /etc/nova
@@ -509,7 +516,7 @@ nova boot --flavor 1 --image "Ubuntu12.04-amd64" --key_name key1 cloud01
 ##关联vm
 sleep 10
 ## nova floating-ip-create
-## nova add-floating-ip cloud01 10.0.2.226
+## nova add-floating-ip cloud01 192.168.139.226
 nova show cloud01
 nova add-floating-ip cloud01 `nova floating-ip-create | awk 'FNR==4{print $2}'`
 nova list
@@ -531,7 +538,7 @@ nova show cloud01
 ## 八、完成安装部署
 cat <<EOF >&1
  1. login the dashboard
-   http://10.0.2.15
+   http://192.168.139.50
    user:admin
    pass:admin or $ADMIN_TOKEN
  2. login a instance("cloud01")

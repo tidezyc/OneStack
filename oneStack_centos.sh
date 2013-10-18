@@ -45,41 +45,20 @@ GLANCE_DB_PASSWD=${GLANCE_DB_PASSWD:-"cloud1234"}
 ## 注意：单网卡的去掉interfaces的eth1，并把nova.conf里面eth1改完eth0即可！
 ## 自行检查下面network/interfaces的两个网卡设置
 ## 本机器外网ip （包括局域网的内网ip，相对于OpenStack内网而言的）
-OUT_IP="192.168.139.50"
-OUT_IP_PRE="192.168.139"
+OUT_IP="192.168.0.50"
+OUT_IP_PRE="192.168.0"
 ## nova-network内网ip
 IN_IP="10.0.0.1"
 IN_IP_PRE="10.0.0"
 ## flat的起始ip
 FLAT_IP="10.0.0.40"
 ## 浮动ip的起始值
-FLOAT_IP="192.168.139.225"
+FLOAT_IP="192.168.0.225"
 
 ## 选择虚拟技术，裸机使用kvm，虚拟机里面使用qemu
 VIRT_TYPE="qemu"
 ## token, 登录dashboard密码（用户名admin）
 ADMIN_TOKEN="admin"
-##########################################################################
-## 2）检查系统是否ubuntu12.04，据反映11.10也可以正常安装，可以去掉这一段检查
-# Determine what system we are running on.  This provides ``os_VENDOR``...
-# Determine OS Vendor, Release and Update 
-#if [[ -x "`which lsb_release 2>/dev/null`" ]]; then
-    os_VENDOR=$(lsb_release -i -s)
-    os_RELEASE=$(lsb_release -r -s)
-    os_UPDATE=""
-    os_CODENAME=$(lsb_release -c -s)
-#fi
-if [ "Ubuntu" = "$os_VENDOR" ]; then
-    DISTRO=$os_CODENAME
-else
-    echo "The os didn't seems to be Ubuntu."
-    exit 1
-fi
-echo $DISTRO
-if [ "precise" != ${DISTRO} -a "oneiric" != ${DISTRO} ]; then
-    echo "WARNING: this script has been tested on oneiric or precise"
-    exit 1
-fi
 
 ############################################################################
 ## 3）以下系统配置，语言中文支持、国内APT源、网络设置（两个网卡），可以自行配置，注释掉这些步骤。

@@ -11,7 +11,7 @@ set -o xtrace
 ## 请使用root执行本脚本！
 ## Ubuntu 12.04 ("Precise") 部署 OpenStack Essex（或者ubuntu11.10版本）
 ## 参考：
-## http://hi.baidu.com/chenshake/item/29a7b8c1b96fb82d46d5c0fb
+## http://hi.baidu.com/chenshake/item/29a7b8c1b96fb166d46d5c0fb
 ## http://docs.openstack.org/essex/openstack-compute/starter/content/
 
 ## 一：准备系统
@@ -29,7 +29,7 @@ if [ `whoami` != "root" ]; then
 fi
 
 ## 4：设置参数和环境配置，直到两行#号结束
-## 这个配置以后就不需要更改了，比如看到192.168.0.82等ip，不用更改，脚本会自动替换这些初始值。
+## 这个配置以后就不需要更改了，比如看到192.168.0.166等ip，不用更改，脚本会自动替换这些初始值。
 ## 可以变动的是，第500行的image的下载；或者去掉第七步开始的部分（上传镜像，创建实例）
 ##########################################################################
 ##########################################################################
@@ -45,7 +45,7 @@ GLANCE_DB_PASSWD=${GLANCE_DB_PASSWD:-"cloud1234"}
 ## 注意：单网卡的去掉interfaces的eth1，并把nova.conf里面eth1改完eth0即可！
 ## 自行检查下面network/interfaces的两个网卡设置
 ## 本机器外网ip （包括局域网的内网ip，相对于OpenStack内网而言的）
-OUT_IP="192.168.0.82"
+OUT_IP="192.168.0.166"
 OUT_IP_PRE="192.168.0"
 ## nova-network内网ip
 IN_IP="10.0.0.1"
@@ -122,7 +122,7 @@ iface lo inet loopback
 auto eth0
 iface eth0 inet static
 pre-up ifconfig eth0 hw ether b8:ac:6f:9a:ee:e4
-        address 192.168.0.82
+        address 192.168.0.166
         netmask 255.255.255.0
         network 192.168.0.0
         broadcast 192.168.0.255
@@ -307,7 +307,7 @@ sed -i -e "
 ## flavor = keystone
 GLANCE_API_CONF=${GLANCE_API_CONF:-"/etc/glance/glance-api.conf"}
 GLANCE_REGISTRY_CONF=${GLANCE_REGISTRY_CONF:-"/etc/glance/glance-registry.conf"}
-PUBLIC_IP=${PUBLIC_IP:-"192.168.0.82"}
+PUBLIC_IP=${PUBLIC_IP:-"192.168.0.166"}
 sed -i '/sql_connection = .*/{s|sqlite:///.*|mysql://'"$GLANCE_DB_USERNAME"':'"$GLANCE_DB_PASSWD"'@'"$PUBLIC_IP"'/glance|g}' $GLANCE_API_CONF
 cat <<EOF >>$GLANCE_API_CONF
 [paste_deploy]
@@ -374,18 +374,18 @@ cat <<NOVAconf > /etc/nova/nova.conf
 --use_deprecated_auth=false
 --auth_strategy=keystone
 --scheduler_driver=nova.scheduler.simple.SimpleScheduler
---s3_host=192.168.0.82
---ec2_host=192.168.0.82
---rabbit_host=192.168.0.82
---cc_host=192.168.0.82
---nova_url=http://192.168.0.82:8774/v1.1/
---routing_source_ip=192.168.0.82
---glance_api_servers=192.168.0.82:9292
+--s3_host=192.168.0.166
+--ec2_host=192.168.0.166
+--rabbit_host=192.168.0.166
+--cc_host=192.168.0.166
+--nova_url=http://192.168.0.166:8774/v1.1/
+--routing_source_ip=192.168.0.166
+--glance_api_servers=192.168.0.166:9292
 --image_service=nova.image.glance.GlanceImageService
 --iscsi_ip_prefix=10.0.0
---sql_connection=mysql://novadbadmin:cloud1234@192.168.0.82/nova
---ec2_url=http://192.168.0.82:8773/services/Cloud
---keystone_ec2_url=http://192.168.0.82:5000/v2.0/ec2tokens
+--sql_connection=mysql://novadbadmin:cloud1234@192.168.0.166/nova
+--ec2_url=http://192.168.0.166:8773/services/Cloud
+--keystone_ec2_url=http://192.168.0.166:5000/v2.0/ec2tokens
 --api_paste_config=/etc/nova/api-paste.ini
 --libvirt_type=kvm
 --libvirt_use_virtio_for_bridges=true
@@ -394,7 +394,7 @@ cat <<NOVAconf > /etc/nova/nova.conf
  
 #novnc
 --novnc_enabled=true
---novncproxy_base_url= http://192.168.0.82:6080/vnc_auto.html
+--novncproxy_base_url= http://192.168.0.166:6080/vnc_auto.html
 --vncserver_proxyclient_address=127.0.0.1
 --vncserver_listen=127.0.0.1
 
@@ -420,7 +420,7 @@ NOVAconf
 ## fi
 
 sed -i -e "s/novadbadmin/$NOVA_DB_USERNAME/g;s/cloud1234/$NOVA_DB_PASSWD/g" /etc/nova/nova.conf
-sed -i -e "s/192.168.0.82/$OUT_IP/g;s/192.168.0.225/$FLOAT_IP/g;" /etc/nova/nova.conf
+sed -i -e "s/192.168.0.166/$OUT_IP/g;s/192.168.0.225/$FLOAT_IP/g;" /etc/nova/nova.conf
 sed -i -e "s/10.0.0.1/$IN_IP/g;s/10.0.0.40/$FLAT_IP/g;s/10.0.0/$IN_IP_PRE/g;" /etc/nova/nova.conf
 ## kvm or qemu?
 sed -i -e "s/kvm/$VIRT_TYPE/g" /etc/nova/nova.conf
@@ -451,7 +451,7 @@ apt-get install -y libapache2-mod-wsgi openstack-dashboard
 /etc/init.d/apache2 restart
 
 ## 这个时候，你就可以登录dashboard
-## http://192.168.0.82
+## http://192.168.0.166
 ## user:admin
 ## pass:ADMIN
 ## 之后通过前端web管理
@@ -536,7 +536,7 @@ nova show cloud01
 ## 八、完成安装部署
 cat <<EOF >&1
  1. login the dashboard
-   http://192.168.0.82
+   http://192.168.0.166
    user:admin
    pass:admin or $ADMIN_TOKEN
  2. login a instance("cloud01")
